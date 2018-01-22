@@ -4,12 +4,33 @@ from bottle import *
 from database import *
 import datetime
 import json
+import threading
+import time
 
 slack = Slacker(slackbot_settings.API_TOKEN)
 
 
 def message(mes, channel="remind_bot"):
     slack.chat.post_message(channel, mes, as_user=True)
+
+
+class PerHalfHour(threading.Thread):
+    def __init__(self):
+        super().__init__()
+        self.running = True
+
+
+    def run(self):
+        print("check")
+        while self.running:
+            for s in Schedule.select().where(Schedule.date < (datetime.datetime.now() + datetime.timedelta(hours=2))):
+                message(s.message)
+                if s.date < datetime.datetime.now():
+                    s.delete_instance()
+            time.sleep(60 * 30)
+
+    def kill(self):
+        self.running = False
 
 
 def is_unique(schedule_model_instance):
@@ -23,12 +44,14 @@ def schedule():
     schedule = request.params.schedule
     date_format = request.params.date_format
     message = request.params.message or "remind"
-    print(message)
     date = datetime.datetime.strptime(schedule, date_format)
+    if date <= datetime.datetime.now():
+        return "0"
     try:
         s = Schedule(date=date, message=message)
         if is_unique(s):
             s.save()
+            print(message)
             return "1"
     except Exception as e:
         print(e)
@@ -60,4 +83,7 @@ def schedule_list():
     return json.dumps(data)
 
 
+per_half_hour = PerHalfHour()
+per_half_hour.start()
 run(host="0.0.0.0", port=8080)
+per_half_hour.kill()
