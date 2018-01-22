@@ -85,5 +85,5 @@ def schedule_list():
 
 per_half_hour = PerHalfHour()
 per_half_hour.start()
-run(host="0.0.0.0", port=8080)
+run(host="0.0.0.0", port=8000)
 per_half_hour.kill()

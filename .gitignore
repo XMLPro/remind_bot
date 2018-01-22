@@ -3,3 +3,5 @@ __pycache__/
 page.html
 slackbot_settings.py
 data.sqlite3
+out.log
+nohup.out
