@@ -24,7 +24,7 @@ class PerHalfHour(threading.Thread):
         print("check")
         while self.running:
             for s in Schedule.select().where(Schedule.date < (datetime.datetime.now() + datetime.timedelta(hours=2))):
-                message(s.message)
+                message(s.message, "競技プログラミング")
                 if s.date < datetime.datetime.now():
                     s.delete_instance()
             time.sleep(60 * 30)
